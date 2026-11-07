@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugas Kriptografi - Naila's Funky Hill Cipher</title>
+    
+    <!-- Font Funky & Playful -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Bubblegum+Sans&display=swap" rel="stylesheet">
+
+    <style>
+        /* Palet Warna Funky */
+        :root {
+            --pink: #FF66C4;
+            --purple: #CB6CE6;
+            --cyan: #5CE1E6;
+            --yellow: #FFDE59;
+            --black: #1A1A1A;
+            --white: #FFFFFF;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Fredoka', sans-serif; 
+            margin: 0; padding: 0; 
+            background-color: var(--yellow);
+            background-image: 
+                linear-gradient(45deg, var(--pink) 25%, transparent 25%, transparent 75%, var(--pink) 75%, var(--pink)), 
+                linear-gradient(45deg, var(--pink) 25%, transparent 25%, transparent 75%, var(--pink) 75%, var(--pink));
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            color: var(--black);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--cyan);
+            color: var(--black);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 6px solid var(--black);
+            box-shadow: 0 8px 0 var(--black);
+            margin-bottom: 40px;
+        }
+
+        .header h1 { 
+            font-family: 'Bubblegum Sans', cursive;
+            margin: 0; font-size: 42px; letter-spacing: 2px;
+            text-shadow: 3px 3px 0 var(--white), 6px 6px 0 var(--black);
+        }
+        
+        .header p { 
+            margin: 15px 0 0; font-size: 18px; font-weight: 700;
+            background: var(--yellow); display: inline-block;
+            padding: 8px 20px; border: 3px solid var(--black);
+            border-radius: 30px; box-shadow: 4px 4px 0 var(--black);
+        }
+
+        .container { max-width: 900px; margin: auto; padding: 0 20px 60px; }
+
+        .card {
+            background: var(--white);
+            border: 5px solid var(--black);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 35px;
+            box-shadow: 10px 10px 0 var(--black);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .card:hover { transform: translate(-4px, -4px); box-shadow: 14px 14px 0 var(--black); }
+
+        .card:nth-child(1) h2 { background: var(--purple); color: var(--white); }
+        .card:nth-child(2) h2 { background: var(--pink); color: var(--white); }
+        .card:nth-child(3) h2 { background: var(--cyan); color: var(--black); }
+        .card:nth-child(4) h2 { background: var(--yellow); color: var(--black); }
+
+        .card h2 {
+            margin-top: -15px; margin-bottom: 20px;
+            font-family: 'Bubblegum Sans', cursive; font-size: 24px;
+            padding: 10px 20px; display: inline-block;
+            border: 4px solid var(--black); border-radius: 10px;
+            box-shadow: 4px 4px 0 var(--black); transform: rotate(-2deg);
+        }
+
+        .matrix-box {
+            display: inline-flex; flex-direction: column; align-items: center;
+            background: var(--yellow); padding: 15px 30px; border-radius: 12px;
+            font-size: 22px; font-weight: 700; color: var(--black);
+            margin: 15px 0; border: 4px solid var(--black); box-shadow: 5px 5px 0 var(--black);
+        }
+
+        .matrix-row { display: flex; gap: 20px; }
+
+        /* STYLE RUMUS BARU (Anti Gagal) */
+        .rumus-box {
+            background: var(--cyan);
+            border: 4px solid var(--black);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            color: var(--black);
+            box-shadow: 6px 6px 0 var(--black);
+            font-weight: bold;
+        }
+        
+        .rumus-teks {
+            font-size: 24px;
+            font-family: 'Fredoka', sans-serif;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        .result-box {
+            background: var(--white); border: 4px dashed var(--black);
+            padding: 20px; border-radius: 15px; margin-top: 25px; text-align: center;
+        }
+
+        .result-box h3 { margin: 0 0 10px; color: var(--black); font-size: 18px; }
+        .result-text {
+            font-family: 'Bubblegum Sans', cursive; font-size: 32px;
+            font-weight: 700; color: var(--pink); letter-spacing: 4px;
+            word-wrap: break-word; -webkit-text-stroke: 1px var(--black);
+        }
+
+        .step-list { margin-top: 25px; }
+        .step-item {
+            background: #fdfbf7; border: 3px solid var(--black);
+            padding: 15px; margin-bottom: 15px; border-radius: 10px;
+            font-size: 15px; color: #333; box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .step-item::before {
+            content: '★'; position: absolute; top: -10px; left: -10px;
+            background: var(--yellow); border: 2px solid var(--black);
+            border-radius: 50%; width: 25px; height: 25px;
+            display: flex; align-items: center; justify-content: center; font-size: 12px;
+        }
+
+        .step-item strong { color: var(--purple); }
+
+        .flowchart-container {
+            background: var(--white); border: 5px solid var(--black);
+            border-radius: 20px; padding: 30px;
+            box-shadow: 10px 10px 0 var(--black); text-align: center;
+            overflow-x: auto; margin-bottom: 30px;
+        }
+
+        .flowchart-container h2 {
+            background: var(--pink); color: var(--white);
+            display: inline-block; padding: 10px 20px;
+            border: 4px solid var(--black); border-radius: 10px;
+            box-shadow: 4px 4px 0 var(--black); transform: rotate(2deg);
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Naila's Funky Cipher 🦄✨</h1>
+        <p>Naila Anbar Afifah | 524012016</p>
+    </div>
+
+    <div class="container">
+        
+        <!-- SOAL 1 -->
+        <div class="card">
+            <h2>Soal 1: HILL CIPHER TIDAK SULIT</h2>
+            <p><strong>Plainteks:</strong> HILL CIPHER TIDAK SULIT</p>
+            <p><strong>Kunci Matriks (K):</strong></p>
+            <div class="matrix-box">
+                <div class="matrix-row"><span>5</span> <span>6</span></div>
+                <div class="matrix-row"><span>2</span> <span>3</span></div>
+            </div>
+
+            <div class="rumus-box">
+                <p style="margin: 0 0 10px 0; font-size: 16px;">Rumus Enkripsi:</p>
+                <!-- RUMUS HTML MURNI -->
+                <p class="rumus-teks">C = K × P (mod 26)</p>
+            </div>
+            
+            <div id="hasil-soal1"></div>
+        </div>
+
+        <!-- DEKRIPSI SOAL 1 -->
+        <div class="card">
+            <h2>Dekripsi (C → P) - Soal 1</h2>
+            <div class="rumus-box">
+                <p style="margin: 0 0 10px 0; font-size: 16px;">Rumus Dekripsi:</p>
+                <!-- RUMUS HTML MURNI -->
+                <p class="rumus-teks">P = K<sup>-1</sup> × C (mod 26)</p>
+            </div>
+            <div id="dekripsi-soal1"></div>
+        </div>
+
+        <!-- SOAL 2 -->
+        <div class="card">
+            <h2>Soal 2: SAYA PUSING</h2>
+            <p><strong>Plainteks:</strong> SAYA PUSING</p>
+            <p><strong>Kunci Matriks (K):</strong></p>
+            <div class="matrix-box">
+                <div class="matrix-row"><span>5</span> <span>8</span></div>
+                <div class="matrix-row"><span>17</span> <span>3</span></div>
+            </div>
+
+            <div class="rumus-box">
+                <p style="margin: 0 0 10px 0; font-size: 16px;">Rumus Enkripsi:</p>
+                <!-- RUMUS HTML MURNI -->
+                <p class="rumus-teks">C = K × P (mod 26)</p>
+            </div>
+
+            <div id="hasil-soal2"></div>
+        </div>
+
+        <!-- DEKRIPSI SOAL 2 -->
+        <div class="card">
+            <h2>Dekripsi (C → P) - Soal 2</h2>
+            <div class="rumus-box">
+                <p style="margin: 0 0 10px 0; font-size: 16px;">Rumus Dekripsi:</p>
+                <!-- RUMUS HTML MURNI -->
+                <p class="rumus-teks">P = K<sup>-1</sup> × C (mod 26)</p>
+            </div>
+            <div id="dekripsi-soal2"></div>
+        </div>
+
+        <!-- FLOWCHART ENKRIPSI (SVG MURNI) -->
+        <div class="flowchart-container">
+            <h2>Flowchart Enkripsi 🚀</h2>
+            <div style="overflow-x: auto; margin-top: 20px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 550" width="100%" style="min-width: 300px;">
+                    <defs>
+                        <marker id="arrow1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#1A1A1A" />
+                        </marker>
+                    </defs>
+                    <g stroke="#1A1A1A" stroke-width="3" fill="none" marker-end="url(#arrow1)">
+                        <line x1="225" y1="50" x2="225" y2="80" />
+                        <line x1="225" y1="130" x2="225" y2="160" />
+                        <line x1="225" y1="210" x2="225" y2="240" />
+                        <line x1="315" y1="255" x2="370" y2="255" />
+                        <line x1="225" y1="270" x2="225" y2="300" />
+                        <line x1="370" y1="275" x2="370" y2="330" />
+                        <line x1="370" y1="330" x2="280" y2="330" />
+                        <line x1="225" y1="350" x2="225" y2="380" />
+                        <line x1="225" y1="430" x2="225" y2="460" />
+                        <line x1="225" y1="490" x2="225" y2="510" />
+                    </g>
+                    <rect x="150" y="10" width="150" height="40" rx="20" fill="#FF66C4" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="35" font-family="Fredoka, sans-serif" font-weight="bold" font-size="16" text-anchor="middle" fill="#1A1A1A">Mulai</text>
+                    <rect x="125" y="80" width="200" height="50" fill="#FFDE59" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="100" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" text-anchor="middle" fill="#1A1A1A">Input Plainteks &amp; Kunci</text>
+                    <text x="225" y="118" font-family="Fredoka, sans-serif" font-size="12" text-anchor="middle" fill="#1A1A1A">(Hapus Spasi &amp; Kapitalisasi)</text>
+                    <polygon points="225,160 315,210 225,260 135,210" fill="#CB6CE6" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="208" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" text-anchor="middle" fill="#FFF">Panjang</text>
+                    <text x="225" y="225" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" text-anchor="middle" fill="#FFF">Ganjil?</text>
+                    <text x="340" y="250" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" fill="#1A1A1A">Ya</text>
+                    <text x="235" y="290" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" fill="#1A1A1A">Tidak</text>
+                    <rect x="310" y="240" width="120" height="50" fill="#5CE1E6" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="370" y="270" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" text-anchor="middle" fill="#1A1A1A">Tambah 'X'</text>
+                    <rect x="125" y="300" width="200" height="50" fill="#FFDE59" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="320" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" text-anchor="middle" fill="#1A1A1A">Loop per 2 Karakter</text>
+                    <text x="225" y="338" font-family="Fredoka, sans-serif" font-size="12" text-anchor="middle" fill="#1A1A1A">Konversi A=0..Z=25</text>
+                    <rect x="125" y="380" width="200" height="50" fill="#FFDE59" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="400" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" text-anchor="middle" fill="#1A1A1A">Perkalian Matriks K × P</text>
+                    <text x="225" y="418" font-family="Fredoka, sans-serif" font-size="12" text-anchor="middle" fill="#1A1A1A">Modulo 26</text>
+                    <rect x="125" y="460" width="200" height="40" fill="#FFDE59" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="485" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" text-anchor="middle" fill="#1A1A1A">Tampilkan Hasil</text>
+                    <rect x="150" y="510" width="150" height="40" rx="20" fill="#5CE1E6" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="535" font-family="Fredoka, sans-serif" font-weight="bold" font-size="16" text-anchor="middle" fill="#1A1A1A">Selesai</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- FLOWCHART DEKRIPSI (SVG MURNI) -->
+        <div class="flowchart-container">
+            <h2>Flowchart Dekripsi 🔍</h2>
+            <div style="overflow-x: auto; margin-top: 20px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 600" width="100%" style="min-width: 300px;">
+                    <defs>
+                        <marker id="arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#1A1A1A" />
+                        </marker>
+                    </defs>
+                    <g stroke="#1A1A1A" stroke-width="3" fill="none" marker-end="url(#arrow2)">
+                        <line x1="225" y1="40" x2="225" y2="70" />
+                        <line x1="225" y1="120" x2="225" y2="150" />
+                        <line x1="225" y1="200" x2="225" y2="230" />
+                        <line x1="225" y1="280" x2="225" y2="310" />
+                        <line x1="225" y1="360" x2="225" y2="390" />
+                        <line x1="225" y1="440" x2="225" y2="470" />
+                        <line x1="225" y1="520" x2="225" y2="540" />
+                    </g>
+                    <rect x="150" y="10" width="150" height="40" rx="20" fill="#FF66C4" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="35" font-family="Fredoka, sans-serif" font-weight="bold" font-size="16" text-anchor="middle" fill="#1A1A1A">Mulai</text>
+                    <rect x="125" y="70" width="200" height="50" fill="#FFDE59" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="90" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" text-anchor="middle" fill="#1A1A1A">Input Cipherteks &amp; Kunci</text>
+                    <rect x="125" y="150" width="200" height="50" fill="#5CE1E6" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="175" font-family="Fredoka, sans-serif" font-weight="bold" font-size="13" text-anchor="middle" fill="#1A1A1A">Hitung Determinan Matriks</text>
+                    <text x="225" y="190" font-family="Fredoka, sans-serif" font-size="12" text-anchor="middle" fill="#1A1A1A">det = (ad - bc) mod 26</text>
+                    <polygon points="225,230 315,280 225,330 135,280" fill="#CB6CE6" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="278" font-family="Fredoka, sans-serif" font-weight="bold" font-size="13" text-anchor="middle" fill="#FFF">Punya Invers</text>
+                    <text x="225" y="295" font-family="Fredoka, sans-serif" font-weight="bold" font-size="13" text-anchor="middle" fill="#FFF">Mod 26?</text>
+                    <text x="235" y="345" font-family="Fredoka, sans-serif" font-weight="bold" font-size="13" fill="#1A1A1A">Ya</text>
+                    <rect x="110" y="390" width="230" height="50" fill="#FFDE59" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="410" font-family="Fredoka, sans-serif" font-weight="bold" font-size="13" text-anchor="middle" fill="#1A1A1A">Cari Matriks Invers K⁻¹</text>
+                    <text x="225" y="425" font-family="Fredoka, sans-serif" font-size="12" text-anchor="middle" fill="#1A1A1A">(Adjoin × 1/det) mod 26</text>
+                    <rect x="125" y="470" width="200" height="50" fill="#5CE1E6" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="490" font-family="Fredoka, sans-serif" font-weight="bold" font-size="14" text-anchor="middle" fill="#1A1A1A">P = K⁻¹ × C (mod 26)</text>
+                    <text x="225" y="508" font-family="Fredoka, sans-serif" font-size="12" text-anchor="middle" fill="#1A1A1A">Loop per 2 Karakter</text>
+                    <rect x="150" y="540" width="150" height="40" rx="20" fill="#FF66C4" stroke="#1A1A1A" stroke-width="3" />
+                    <text x="225" y="565" font-family="Fredoka, sans-serif" font-weight="bold" font-size="16" text-anchor="middle" fill="#1A1A1A">Selesai</text>
+                </svg>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LOGIKA JAVASCRIPT -->
+    <script>
+        function prosesEnkripsi(plainteks, K, targetId) {
+            let p = plainteks.replace(/[^A-Za-z]/g, '').toUpperCase();
+            if (p.length % 2 !== 0) p += 'X';
+            let c_final = ""; let steps = "";
+
+            for (let i = 0; i < p.length; i += 2) {
+                let p1 = p.charCodeAt(i) - 65;
+                let p2 = p.charCodeAt(i+1) - 65;
+                let c1_raw = (K[0][0] * p1) + (K[0][1] * p2);
+                let c2_raw = (K[1][0] * p1) + (K[1][1] * p2);
+                let c1 = c1_raw % 26; if (c1 < 0) c1 += 26;
+                let c2 = c2_raw % 26; if (c2 < 0) c2 += 26;
+                let h1 = String.fromCharCode(c1 + 65);
+                let h2 = String.fromCharCode(c2 + 65);
+                c_final += h1 + h2;
+
+                steps += `<div class="step-item">
+                    <strong>Blok ${(i/2)+1} (${p[i]}${p[i+1]}):</strong><br>
+                    Indeks: ${p[i]} = ${p1}, ${p[i+1]} = ${p2}<br>
+                    C1 = (${K[0][0]}×${p1}) + (${K[0][1]}×${p2}) = ${c1_raw} ≡ ${c1} (${h1}) <br>
+                    C2 = (${K[1][0]}×${p1}) + (${K[1][1]}×${p2}) = ${c2_raw} ≡ ${c2} (${h2}) <br>
+                    <strong>Hasil: ${h1}${h2}</strong>
+                </div>`;
+            }
+
+            document.getElementById(targetId).innerHTML = `
+                <div class="result-box">
+                    <h3>Hasil Cipherteks:</h3>
+                    <div class="result-text">${c_final}</div>
+                </div>
+                <div class="step-list">${steps}</div>`;
+            
+            return c_final;
+        }
+
+        function prosesDekripsi(cipherteks, K, targetId) {
+            let det = (K[0][0]*K[1][1]) - (K[0][1]*K[1][0]);
+            let det_asli = det;
+            
+            while (det < 0) { det += 26; }
+            let det_mod = det % 26;
+
+            let inv_det = -1;
+            for (let x = 1; x < 26; x++) { if ((det_mod * x) % 26 === 1) { inv_det = x; break; } }
+
+            let adj = [[K[1][1], -K[0][1]], [-K[1][0], K[0][0]]];
+            let K_inv = [
+                [ (adj[0][0]*inv_det)%26, (adj[0][1]*inv_det)%26 ],
+                [ (adj[1][0]*inv_det)%26, (adj[1][1]*inv_det)%26 ]
+            ];
+            for(let r=0; r<2; r++) { for(let c=0; c<2; c++) { if(K_inv[r][c]<0) K_inv[r][c]+=26; } }
+
+            let p_hasil = ""; let steps = "";
+            for (let i = 0; i < cipherteks.length; i += 2) {
+                let c1 = cipherteks.charCodeAt(i) - 65;
+                let c2 = cipherteks.charCodeAt(i+1) - 65;
+                let p1_raw = (K_inv[0][0]*c1) + (K_inv[0][1]*c2);
+                let p2_raw = (K_inv[1][0]*c1) + (K_inv[1][1]*c2);
+                let p1 = p1_raw % 26; if (p1 < 0) p1 += 26;
+                let p2 = p2_raw % 26; if (p2 < 0) p2 += 26;
+                let h1 = String.fromCharCode(p1 + 65);
+                let h2 = String.fromCharCode(p2 + 65);
+                p_hasil += h1 + h2;
+
+                steps += `<div class="step-item">
+                    <strong>Blok ${(i/2)+1} (${cipherteks[i]}${cipherteks[i+1]}):</strong><br>
+                    Indeks: ${cipherteks[i]} = ${c1}, ${cipherteks[i+1]} = ${c2}<br>
+                    P1 = (${K_inv[0][0]}×${c1}) + (${K_inv[0][1]}×${c2}) = ${p1_raw} ≡ ${p1} (${h1}) <br>
+                    P2 = (${K_inv[1][0]}×${c1}) + (${K_inv[1][1]}×${c2}) = ${p2_raw} ≡ ${p2} (${h2}) <br>
+                    <strong>Hasil: ${h1}${h2}</strong>
+                </div>`;
+            }
+
+            document.getElementById(targetId).innerHTML = `
+                <div class="step-item" style="border-left-color: var(--pink); background: var(--purple); color: white;">
+                    <strong style="color: var(--yellow);">Langkah Pencarian Kunci Invers:</strong><br>
+                    1. Determinan = (${K[0][0]}×${K[1][1]}) - (${K[0][1]}×${K[1][0]}) = ${det_asli} ${det_asli<0 ? `+ 130 = ${det}` : ''}. Mod 26 = <strong>${det_mod}</strong>.<br>
+                    2. Invers Determinan = <strong>${inv_det}</strong>.<br>
+                    3. Matriks Invers K⁻¹ = <strong>[[${K_inv[0][0]}, ${K_inv[0][1]}], [${K_inv[1][0]}, ${K_inv[1][1]}]]</strong>
+                </div>
+                <div class="result-box" style="background: var(--cyan);">
+                    <h3>Hasil Plainteks:</h3>
+                    <div class="result-text" style="color: var(--black);">${p_hasil}</div>
+                </div>
+                <div class="step-list">${steps}</div>`;
+        }
+
+        window.onload = function() {
+            let K1 = [[5, 6], [2, 3]];
+            let cipherSoal1 = prosesEnkripsi("HILL CIPHER TIDAK SULIT", K1, "hasil-soal1");
+            prosesDekripsi(cipherSoal1, K1, "dekripsi-soal1");
+
+            let K2 = [[5, 8], [17, 3]];
+            let cipherSoal2 = prosesEnkripsi("SAYA PUSING", K2, "hasil-soal2");
+            prosesDekripsi(cipherSoal2, K2, "dekripsi-soal2");
+        };
+    </script>
+
+</body>
+</html>
